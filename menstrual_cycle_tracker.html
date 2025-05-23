@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cycle Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .calendar-section {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .tracking-section {
+            background: #fff5f5;
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #ff6b6b;
+            padding-bottom: 10px;
+        }
+
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 20px;
+        }
+
+        .calendar-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .calendar-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .nav-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: #ff5252;
+        }
+
+        .month-year {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .day-header {
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            color: #666;
+            background: #e8eaff;
+            border-radius: 5px;
+        }
+
+        .day {
+            padding: 15px 5px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .day:hover {
+            background: #e8eaff;
+            transform: scale(1.05);
+        }
+
+        .day.other-month {
+            color: #ccc;
+        }
+
+        .day.today {
+            background: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+
+        .day.period {
+            background: #ff6b6b;
+            color: white;
+        }
+
+
+
+        .day.selected {
+            background: #2196f3;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #ff6b6b;
+        }
+
+        .btn-primary {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: #ff5252;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ff6b6b;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+
+        .symptom-tracker {
+            margin-top: 25px;
+        }
+
+        .symptom-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .symptom-btn {
+            padding: 8px 12px;
+            border: 2px solid #e1e5e9;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .symptom-btn.active {
+            background: #ff6b6b;
+            color: white;
+            border-color: #ff6b6b;
+        }
+
+        .predictions {
+            margin-top: 25px;
+            padding: 20px;
+            background: #e8f5e8;
+            border-radius: 10px;
+        }
+
+        .predictions h3 {
+            color: #2e7d32;
+            margin-bottom: 15px;
+        }
+
+        .prediction-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid #4caf50;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .calendar {
+                font-size: 0.9em;
+            }
+            
+            .day {
+                min-height: 35px;
+                padding: 10px 3px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌸 Cycle Tracker</h1>
+            <p>Track your menstrual cycle with ease and insight</p>
+        </div>
+
+        <div class="main-content">
+            <div class="calendar-section">
+                <h2 class="section-title">📅 Calendar View</h2>
+                
+                <div class="calendar-nav">
+                    <button class="nav-btn" onclick="changeMonth(-1)">‹ Previous</button>
+                    <div class="month-year" id="monthYear"></div>
+                    <button class="nav-btn" onclick="changeMonth(1)">Next ›</button>
+                </div>
+
+                <div class="calendar-header">
+                    <div class="day-header">Sun</div>
+                    <div class="day-header">Mon</div>
+                    <div class="day-header">Tue</div>
+                    <div class="day-header">Wed</div>
+                    <div class="day-header">Thu</div>
+                    <div class="day-header">Fri</div>
+                    <div class="day-header">Sat</div>
+                </div>
+
+                <div class="calendar" id="calendar"></div>
+
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ff6b6b;"></div>
+                        <span>Period</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4CAF50;"></div>
+                        <span>Today</span>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="cycleLength">28</div>
+                        <div class="stat-label">Average Cycle Length</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="periodLength">5</div>
+                        <div class="stat-label">Average Period Length</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="daysUntilNext">--</div>
+                        <div class="stat-label">Days Until Next Period</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="daysSinceLast">--</div>
+                        <div class="stat-label">Days Since Last Period</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tracking-section">
+                <h2 class="section-title">📝 Track Your Cycle</h2>
+                
+                <form id="trackingForm">
+                    <div class="form-group">
+                        <label for="selectedDate">Date:</label>
+                        <input type="date" id="selectedDate" name="selectedDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="flowLevel">Flow Level:</label>
+                        <select id="flowLevel" name="flowLevel">
+                            <option value="">Select flow level</option>
+                            <option value="none">No flow</option>
+                            <option value="spotting">Spotting</option>
+                            <option value="light">Light</option>
+                            <option value="medium">Medium</option>
+                            <option value="heavy">Heavy</option>
+                        </select>
+                    </div>
+
+                    <div class="symptom-tracker">
+                        <label>Symptoms:</label>
+                        <div class="symptom-grid">
+                            <button type="button" class="symptom-btn" data-symptom="cramps">Cramps</button>
+                            <button type="button" class="symptom-btn" data-symptom="headache">Headache</button>
+                            <button type="button" class="symptom-btn" data-symptom="bloating">Bloating</button>
+                            <button type="button" class="symptom-btn" data-symptom="mood">Mood Changes</button>
+                            <button type="button" class="symptom-btn" data-symptom="fatigue">Fatigue</button>
+                            <button type="button" class="symptom-btn" data-symptom="nausea">Nausea</button>
+                            <button type="button" class="symptom-btn" data-symptom="breast">Breast Tenderness</button>
+                            <button type="button" class="symptom-btn" data-symptom="acne">Acne</button>
+                            <button type="button" class="symptom-btn" data-symptom="cravings">Food Cravings</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes">Notes:</label>
+                        <textarea id="notes" name="notes" rows="3" placeholder="Any additional notes about how you're feeling..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Save Entry</button>
+                </form>
+
+                <div class="predictions">
+                    <h3>🔮 Predictions</h3>
+                    <div id="predictionsList">
+                        <div class="prediction-item">
+                            Track your periods for personalized predictions
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class CycleTracker {
+            constructor() {
+                this.currentDate = new Date();
+                this.currentMonth = this.currentDate.getMonth();
+                this.currentYear = this.currentDate.getFullYear();
+                this.selectedDate = null;
+                this.cycleData = this.loadData();
+                this.init();
+            }
+
+            init() {
+                this.renderCalendar();
+                this.setupEventListeners();
+                this.updateStats();
+                this.updatePredictions();
+                document.getElementById('selectedDate').value = this.formatDate(new Date());
+            }
+
+            loadData() {
+                // Using in-memory storage instead of localStorage for compatibility
+                if (!window.cycleData) {
+                    window.cycleData = {
+                        periods: [],
+                        entries: {}
+                    };
+                }
+                return window.cycleData;
+            }
+
+            saveData() {
+                window.cycleData = this.cycleData;
+            }
+
+            setupEventListeners() {
+                document.getElementById('trackingForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveEntry();
+                });
+
+                document.querySelectorAll('.symptom-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        btn.classList.toggle('active');
+                    });
+                });
+
+                document.getElementById('selectedDate').addEventListener('change', (e) => {
+                    this.loadEntryForDate(e.target.value);
+                });
+            }
+
+            renderCalendar() {
+                const calendar = document.getElementById('calendar');
+                const monthYear = document.getElementById('monthYear');
+                
+                const firstDay = new Date(this.currentYear, this.currentMonth, 1);
+                const lastDay = new Date(this.currentYear, this.currentMonth + 1, 0);
+                const startDate = new Date(firstDay);
+                startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+                monthYear.textContent = firstDay.toLocaleDateString('en-US', { 
+                    month: 'long', 
+                    year: 'numeric' 
+                });
+
+                calendar.innerHTML = '';
+
+                for (let i = 0; i < 42; i++) {
+                    const date = new Date(startDate);
+                    date.setDate(startDate.getDate() + i);
+                    
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'day';
+                    dayElement.textContent = date.getDate();
+                    
+                    if (date.getMonth() !== this.currentMonth) {
+                        dayElement.classList.add('other-month');
+                    }
+                    
+                    if (this.isToday(date)) {
+                        dayElement.classList.add('today');
+                    }
+                    
+                    const dateStr = this.formatDate(date);
+                    const dayType = this.getDayType(date);
+                    
+                    if (dayType === 'period') dayElement.classList.add('period');
+                    
+                    dayElement.addEventListener('click', () => {
+                        document.querySelectorAll('.day.selected').forEach(d => d.classList.remove('selected'));
+                        dayElement.classList.add('selected');
+                        this.selectedDate = date;
+                        document.getElementById('selectedDate').value = dateStr;
+                        this.loadEntryForDate(dateStr);
+                    });
+                    
+                    calendar.appendChild(dayElement);
+                }
+            }
+
+            getDayType(date) {
+                const dateStr = this.formatDate(date);
+                const entry = this.cycleData.entries[dateStr];
+                
+                if (entry && entry.flowLevel && entry.flowLevel !== 'none') {
+                    return 'period';
+                }
+                
+                return 'normal';
+            }
+
+            saveEntry() {
+                const formData = new FormData(document.getElementById('trackingForm'));
+                const dateStr = formData.get('selectedDate');
+                const flowLevel = formData.get('flowLevel');
+                const notes = formData.get('notes');
+                
+                const symptoms = [];
+                document.querySelectorAll('.symptom-btn.active').forEach(btn => {
+                    symptoms.push(btn.dataset.symptom);
+                });
+                
+                this.cycleData.entries[dateStr] = {
+                    flowLevel,
+                    symptoms,
+                    notes,
+                    timestamp: Date.now()
+                };
+                
+                // If this is a period day, update periods array
+                if (flowLevel && flowLevel !== 'none' && flowLevel !== '') {
+                    const date = new Date(dateStr);
+                    this.updatePeriodsArray(date, flowLevel);
+                }
+                
+                this.saveData();
+                this.renderCalendar();
+                this.updateStats();
+                this.updatePredictions();
+                
+                alert('Entry saved successfully!');
+            }
+
+            updatePeriodsArray(date, flowLevel) {
+                const dateStr = this.formatDate(date);
+                
+                // Find if this date is part of an existing period
+                let existingPeriod = this.cycleData.periods.find(period => {
+                    const start = new Date(period.startDate);
+                    const end = new Date(period.endDate);
+                    return date >= start && date <= end;
+                });
+                
+                if (!existingPeriod) {
+                    // Create new period or extend existing one
+                    const nearbyPeriod = this.cycleData.periods.find(period => {
+                        const start = new Date(period.startDate);
+                        const end = new Date(period.endDate);
+                        const daysBefore = Math.floor((start - date) / (1000 * 60 * 60 * 24));
+                        const daysAfter = Math.floor((date - end) / (1000 * 60 * 60 * 24));
+                        return Math.abs(daysBefore) <= 1 || Math.abs(daysAfter) <= 1;
+                    });
+                    
+                    if (nearbyPeriod) {
+                        // Extend existing period
+                        const start = new Date(nearbyPeriod.startDate);
+                        const end = new Date(nearbyPeriod.endDate);
+                        nearbyPeriod.startDate = this.formatDate(new Date(Math.min(date, start)));
+                        nearbyPeriod.endDate = this.formatDate(new Date(Math.max(date, end)));
+                    } else {
+                        // Create new period
+                        this.cycleData.periods.push({
+                            startDate: dateStr,
+                            endDate: dateStr
+                        });
+                    }
+                }
+                
+                // Sort periods by date
+                this.cycleData.periods.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+            }
+
+            loadEntryForDate(dateStr) {
+                const entry = this.cycleData.entries[dateStr];
+                
+                // Reset form
+                document.getElementById('flowLevel').value = '';
+                document.getElementById('notes').value = '';
+                document.querySelectorAll('.symptom-btn').forEach(btn => btn.classList.remove('active'));
+                
+                if (entry) {
+                    document.getElementById('flowLevel').value = entry.flowLevel || '';
+                    document.getElementById('notes').value = entry.notes || '';
+                    
+                    if (entry.symptoms) {
+                        entry.symptoms.forEach(symptom => {
+                            const btn = document.querySelector(`[data-symptom="${symptom}"]`);
+                            if (btn) btn.classList.add('active');
+                        });
+                    }
+                }
+            }
+
+            updateStats() {
+                const avgCycleLength = this.getAverageCycleLength();
+                const avgPeriodLength = this.getAveragePeriodLength();
+                const daysUntilNext = this.getDaysUntilNextPeriod();
+                const daysSinceLast = this.getDaysSinceLastPeriod();
+                
+                document.getElementById('cycleLength').textContent = avgCycleLength;
+                document.getElementById('periodLength').textContent = avgPeriodLength;
+                document.getElementById('daysUntilNext').textContent = daysUntilNext >= 0 ? daysUntilNext : '--';
+                document.getElementById('daysSinceLast').textContent = daysSinceLast >= 0 ? daysSinceLast : '--';
+            }
+
+            updatePredictions() {
+                const predictionsList = document.getElementById('predictionsList');
+                const lastPeriod = this.getLastPeriodStart();
+                
+                if (!lastPeriod || this.cycleData.periods.length < 2) {
+                    predictionsList.innerHTML = '<div class="prediction-item">Track at least 2 complete cycles for accurate predictions</div>';
+                    return;
+                }
+                
+                const avgCycleLength = this.getAverageCycleLength();
+                const nextPeriodDate = new Date(lastPeriod);
+                nextPeriodDate.setDate(nextPeriodDate.getDate() + avgCycleLength);
+                
+                predictionsList.innerHTML = `
+                    <div class="prediction-item">
+                        <strong>Next Period:</strong> ${nextPeriodDate.toLocaleDateString()}
+                    </div>
+                `;
+            }
+
+            getAverageCycleLength() {
+                if (this.cycleData.periods.length < 2) return 28;
+                
+                const cycleLengths = [];
+                for (let i = 1; i < this.cycleData.periods.length; i++) {
+                    const prevStart = new Date(this.cycleData.periods[i-1].startDate);
+                    const currentStart = new Date(this.cycleData.periods[i].startDate);
+                    const length = Math.floor((currentStart - prevStart) / (1000 * 60 * 60 * 24));
+                    cycleLengths.push(length);
+                }
+                
+                return Math.round(cycleLengths.reduce((a, b) => a + b, 0) / cycleLengths.length);
+            }
+
+            getAveragePeriodLength() {
+                if (this.cycleData.periods.length === 0) return 5;
+                
+                const periodLengths = this.cycleData.periods.map(period => {
+                    const start = new Date(period.startDate);
+                    const end = new Date(period.endDate);
+                    return Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                });
+                
+                return Math.round(periodLengths.reduce((a, b) => a + b, 0) / periodLengths.length);
+            }
+
+            getLastPeriodStart() {
+                if (this.cycleData.periods.length === 0) return null;
+                return new Date(this.cycleData.periods[this.cycleData.periods.length - 1].startDate);
+            }
+
+            getDaysUntilNextPeriod() {
+                const lastPeriod = this.getLastPeriodStart();
+                if (!lastPeriod) return -1;
+                
+                const avgCycleLength = this.getAverageCycleLength();
+                const nextPeriodDate = new Date(lastPeriod);
+                nextPeriodDate.setDate(nextPeriodDate.getDate() + avgCycleLength);
+                
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                nextPeriodDate.setHours(0, 0, 0, 0);
+                
+                return Math.floor((nextPeriodDate - today) / (1000 * 60 * 60 * 24));
+            }
+
+            getDaysSinceLastPeriod() {
+                const lastPeriod = this.getLastPeriodStart();
+                if (!lastPeriod) return -1;
+                
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                lastPeriod.setHours(0, 0, 0, 0);
+                
+                return Math.floor((today - lastPeriod) / (1000 * 60 * 60 * 24));
+            }
+
+            changeMonth(direction) {
+                this.currentMonth += direction;
+                if (this.currentMonth > 11) {
+                    this.currentMonth = 0;
+                    this.currentYear++;
+                } else if (this.currentMonth < 0) {
+                    this.currentMonth = 11;
+                    this.currentYear--;
+                }
+                this.renderCalendar();
+            }
+
+            formatDate(date) {
+                return date.toISOString().split('T')[0];
+            }
+
+            isToday(date) {
+                const today = new Date();
+                return date.toDateString() === today.toDateString();
+            }
+        }
+
+        // Initialize the app
+        const tracker = new CycleTracker();
+
+        // Global functions for navigation buttons
+        function changeMonth(direction) {
+            tracker.changeMonth(direction);
+        }
+    </script>
+</body>
+</html>
