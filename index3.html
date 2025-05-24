@@ -1473,4 +1473,89 @@
         });
     </script>
 </body>
-</html>
+</html> Optimize for mobile
+                    if (this.isMobile()) {
+                        this.optimizeForMobile();
+                    }
+                    
+                    this.showNotification('App loaded successfully!', 'success');
+                } catch (error) {
+                    console.error('Initialization error:', error);
+                    this.showNotification('Failed to load app. Using local storage fallback.', 'warning');
+                    this.cycleData = this.loadDataFromStorage();
+                    this.renderCalendar();
+                    this.setupEventListeners();
+                    this.updateStats();
+                    this.updatePredictions();
+                    document.getElementById('selectedDate').value = this.formatDate(new Date());
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            // IndexedDB Implementation
+            async initDB() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(this.dbName, this.dbVersion);
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => {
+                        this.db = request.result;
+                        resolve();
+                    };
+                    
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains('cycleData')) {
+                            db.createObjectStore('cycleData', { keyPath: 'id' });
+                        }
+                    };
+                });
+            }
+
+            async loadData() {
+                if (!this.db) {
+                    this.cycleData = this.loadDataFromStorage();
+                    return;
+                }
+                
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['cycleData'], 'readonly');
+                    const store = transaction.objectStore('cycleData');
+                    const request = store.get('main');
+                    
+                    request.onsuccess = () => {
+                        if (request.result) {
+                            this.cycleData = request.result.data;
+                        } else {
+                            // Try to migrate from localStorage
+                            this.cycleData = this.loadDataFromStorage();
+                            if (this.cycleData.periods.length > 0 || Object.keys(this.cycleData.entries).length > 0) {
+                                this.saveData(); // Save migrated data to IndexedDB
+                            }
+                        }
+                        resolve();
+                    };
+                    
+                    request.onerror = () => {
+                        console.warn('IndexedDB load failed, using localStorage');
+                        this.cycleData = this.loadDataFromStorage();
+                        resolve();
+                    };
+                });
+            }
+
+            loadDataFromStorage() {
+                try {
+                    const saved = localStorage.getItem('cycleTrackerData');
+                    if (saved) {
+                        return JSON.parse(saved);
+                    }
+                } catch (error) {
+                    console.warn('Could not load saved data from localStorage');
+                }
+                
+                return { periods: [], entries: {} };
+            }
+
+            //
