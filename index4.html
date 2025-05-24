@@ -781,7 +781,13 @@
                     
                     document.getElementById('selectedDate').value = this.formatDate(new Date());
                     
-                    this.saveTimeout = setTimeout(async () => {
+                    async saveData() {
+                // Debounce saves to prevent excessive writes
+                if (this.saveTimeout) {
+                    clearTimeout(this.saveTimeout);
+                }
+                
+                this.saveTimeout = setTimeout(async () => {
                     try {
                         if (this.db) {
                             const transaction = this.db.transaction(['cycleData'], 'readwrite');
@@ -811,43 +817,7 @@
                 }, 1000); // Debounce for 1 second
             }
 
-            
-    async saveData() {
-        // Debounce saves to prevent excessive writes
-        if (this.saveTimeout) {
-            clearTimeout(this.saveTimeout);
-        }
-
-        this.saveTimeout = setTimeout(async () => {
-            try {
-                if (this.db) {
-                    const transaction = this.db.transaction(['cycleData'], 'readwrite');
-                    const store = transaction.objectStore('cycleData');
-                    await store.put({ id: 'main', data: this.cycleData, timestamp: Date.now() });
-                }
-
-                // Also save to localStorage as backup
-                localStorage.setItem('cycleTrackerData', JSON.stringify(this.cycleData));
-
-            } catch (error) {
-                console.error('Save error:', error);
-
-                if (error.name === 'QuotaExceededError') {
-                    this.showNotification('Storage quota exceeded. Consider backing up and clearing old data.', 'warning');
-                } else {
-                    this.showNotification('Failed to save data. Please try again.', 'error');
-                }
-
-                // Fallback to localStorage only
-                try {
-                    localStorage.setItem('cycleTrackerData', JSON.stringify(this.cycleData));
-                } catch (localError) {
-                    this.showNotification('Critical: Unable to save data anywhere!', 'error');
-                }
-            }
-        }, 1000); // Debounce for 1 second
-    }
-setupEventListeners() {
+            setupEventListeners() {
                 const form = document.getElementById('trackingForm');
                 form.addEventListener('submit', (e) => {
                     e.preventDefault();
