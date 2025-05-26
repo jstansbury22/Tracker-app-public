@@ -110,6 +110,8 @@
             display: none;
         }
     </style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffcccc">
 </head>
 <body>
     <div class="install-banner">
@@ -393,37 +395,14 @@
             renderCalendar(year, month);
         });
     </script>
-
 <script>
-let deferredPrompt;
-const installBtn = document.querySelector('.install-banner button');
-
-// Show install prompt when available
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  installBtn.style.display = 'inline-block';
-});
-
-installBtn.addEventListener('click', () => {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(choiceResult => {
-      if (choiceResult.outcome === 'accepted') {
-        console.log('User accepted the A2HS prompt');
-      } else {
-        console.log('User dismissed the A2HS prompt');
-      }
-      deferredPrompt = null;
-    });
-  }
-});
-
-// Optional: Handle close button for banner
-document.querySelector('.install-banner button:nth-child(2)').addEventListener('click', () => {
-  document.querySelector('.install-banner').style.display = 'none';
-});
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => console.log('Service Worker registered', reg))
+      .catch(err => console.error('Service Worker registration failed:', err));
+  });
+}
 </script>
 </body>
-
 </html>
