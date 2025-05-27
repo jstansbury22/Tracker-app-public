@@ -2,7 +2,7 @@
   "name": "Cycle Tracker",
   "short_name": "CycleTracker",
   "description": "Track your menstrual cycle with ease and insight",
-  "start_url": "./",
+  "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
